@@ -2,13 +2,13 @@
 /*
 Plugin Name: wpmanagerpro
 Plugin URI: http://wpmanagerpro.com/
-Description: Manage Multiple WordPress sites from one dashboard. Visit <a href="https://wpmanagerpro.com">wpmanagerpro.com</a> to sign up.
+Description: Manage Multiple WordPress sites from one dashboard. Visit <a href="http://wpmanagerpro.com">wpmanagerpro.com</a> to sign up.
 Author: fayland
-Version: 1.0.0
+Version: 1.0.1
 Author URI: http://wpmanagerpro.com
 */
 
-if(basename($_SERVER['SCRIPT_FILENAME']) == "wpmanagerpro.php"):
+if (basename($_SERVER['SCRIPT_FILENAME']) == "wpmanagerpro.php"):
 	exit;
 endif;
 
@@ -16,7 +16,7 @@ if (version_compare(PHP_VERSION, '5.0.0', '<')) // min version 5 supported
 	exit("<p>wpmanagerpro plugin requires PHP 5 or higher.</p>");
 
 if(! defined('WPMANAGERPRO_VERSION'))
-	define('WPMANAGERPRO_VERSION', '1.0.0');
+	define('WPMANAGERPRO_VERSION', '1.0.1');
 
 if ( ! defined('MNG_XFRAME_COOKIE')) {
 	$siteurl = function_exists( 'get_site_option' ) ? get_site_option( 'siteurl' ) : get_option( 'siteurl' );

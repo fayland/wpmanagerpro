@@ -40,9 +40,34 @@ class MNG_Post {
 		global $wpdb;
 
 		$where = '';
-
 		if (isset($args['post_title']) && strlen($args['post_title'])) {
 			$where.=" AND post_title LIKE '%".mysql_real_escape_string($args['post_title'])."%'";
+		}
+		if (isset($args['post_content']) && strlen($args['post_content'])) {
+			$where.=" AND post_content LIKE '%".mysql_real_escape_string($args['post_content'])."%'";
+		}
+
+		$posts_date_from = $args['post_date_from'];
+		if (! isset($posts_date_from)) $posts_date_from = '';
+		$posts_date_to = $args['post_date_to'];
+		if (! isset($posts_date_to)) $posts_date_to = '';
+		if (! empty($posts_date_from) && !empty($posts_date_to)) {
+			$where.=" AND post_date BETWEEN '".mysql_real_escape_string($posts_date_from)."' AND '".mysql_real_escape_string($posts_date_to)."'";
+		} else if(! empty($posts_date_from) && empty($posts_date_to)) {
+			$where.=" AND post_date >= '".mysql_real_escape_string($posts_date_from)."'";
+		} else if(empty($posts_date_from) && ! empty($posts_date_to)) {
+			$where.=" AND post_date <= '".mysql_real_escape_string($posts_date_to)."'";
+		}
+
+		$status_array = array();
+		$post_statuses = array('publish', 'pending', 'private', 'future', 'draft', 'trash');
+		foreach ($args['status'] as $st) {
+			if (in_array($st, $post_statuses)) {
+				$status_array[] = "'" . $st . "'";
+			}
+		}
+		if (!empty($status_array)) {
+			$where.=" AND post_status IN (".implode(",",$status_array).")";
 		}
 
 		$limit = (isset($args['limit'])) ? ' LIMIT ' . mysql_real_escape_string($args['limit']) : ' LIMIT 20';
