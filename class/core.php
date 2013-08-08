@@ -82,7 +82,7 @@ class MNG_Core {
 				}
 			} elseif ($module === 'installer') {
 				$installer_instance = $this->get_installer_instance();
-				if ($method === 'do_upgrade' || $method === 'get' || $method === 'edit') {
+				if ($method === 'do_upgrade' || $method === 'get' || $method === 'edit' || $method == 'install_remote_file') {
 					$return = $installer_instance->$method($params['args']);
 					mng_response($return);
 				}
