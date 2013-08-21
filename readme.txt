@@ -15,21 +15,18 @@ wpmanagerpro is a revolutionary plugin that helps users manage multiple WordPres
 
 Visit [wpmanagerpro](http://wpmanagerpro.com/), sign up and add your site
 
+Please send us the patch through [github](https://github.com/fayland/wpmanagerpro)
+
 == Changelog ==
 
-= 1.0.2 =
+= 1.0.3 =
 
 - add backups
-
-= 1.0.1 =
-
 - bug fixes
+- released on Aug 2013
 
 = 1.0.0 =
-- formal release on Aug 2013
-
-= 0.0.1 =
-- new start at May 10, 2013
+- released on Aug 2013
 
 == Installation ==
 
