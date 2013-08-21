@@ -115,7 +115,7 @@ class MNG_Core {
 			} elseif ($module === 'backups') {
 				$backup_instance = $this->get_backup_instance();
 				if ($method === 'set_backup_task' || $method === 'backup_now' || $method === 'delete_backup' || $method == 'optimize_tables' || $method === 'restore' || $method === 'cleanup') {
-					$return = $links_instance->$method($params['args']);
+					$return = $backup_instance->$method($params['args']);
 					mng_response($return);
 				}
 			} elseif ($module === 'core') {
@@ -204,7 +204,7 @@ class MNG_Core {
 	function get_backup_instance() {
 		if (!isset($this->backup_instance)) {
 			global $mng_plugin_dir;
-			require_once("$mng_plugin_dir/class/backup.php");
+			require_once("$mng_plugin_dir/class/backups.php");
 			$this->backup_instance = new MNG_Backup($this);
 		}
 		return $this->backup_instance;
