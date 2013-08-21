@@ -114,7 +114,7 @@ class MNG_Core {
 				}
 			} elseif ($module === 'backups') {
 				$backup_instance = $this->get_backup_instance();
-				if ($method === 'set_backup_task' || $method === 'backup_now' || $method === 'delete_backup' || $method == 'optimize_tables' || $method === 'restore' || $method === 'cleanup') {
+				if ($method === 'set_backup_task' || $method === 'run_now' || $method === 'delete_backup' || $method == 'optimize_tables' || $method === 'restore' || $method === 'cleanup') {
 					$return = $backup_instance->$method($params['args']);
 					mng_response($return);
 				}
