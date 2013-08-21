@@ -119,7 +119,6 @@ class MNG_Backup {
                     ));
                 } else {
                     if (@count($setting['task_args']['account_info'])) {
-                        $updated_tasks = get_option('mng_backup_tasks');
                         $this->remote_backup_now(array('task_id' => $task_id));
                     }
                 }
@@ -181,9 +180,6 @@ class MNG_Backup {
         $error = $params['error'];
         $time = $params['time'];
 
-        $run_now = $args['run_now'];
-        unset($args['run_now']);
-
         if (isset($args['remove'])) {
             unset($tasks[$task_id]);
             $return = array(
@@ -224,47 +220,48 @@ class MNG_Backup {
             wp_schedule_event( time(), 'tenminutes', 'mng_backup_tasks_hook' );
         }
 
-        if ($run_now) {
-        	$result = $this->backup($args, $task_id);
-            if (is_array($result) && array_key_exists('error', $result)) {
-            	$return = $result;
-            } else {
-                $return = $tasks[$task_id];
-            }
-        }
-
         return $return;
     }
 
     /**
      * Runs backup task invoked from wpmanagerpro.
      */
-    function task_now($task_id, $google_drive_token = false) {
-        $settings = get_option('mng_backup_tasks');
-		if ($google_drive_token) {
-			$settings[$task_id]['task_args']['account_info']['google_drive']['google_drive_token'] = $google_drive_token;
-		}
+    function run_now($params) {
+        if (empty($params)) return false;
+        $task_id = $params['task_id'];
 
-    	if(!array_key_exists($task_id, $settings)){
-    	 	return array('error' => $task_id . " does not exist.");
-    	} else {
-    	 	$setting = $settings[$task_id];
-    	}
+        $tasks = get_option('mng_backup_tasks');
+        if(! array_key_exists($task_id, $tasks)){
+            return array('error' => $task_id . " does not exist.");
+        } else {
+            $task = $tasks[$task_id];
+        }
+
+        $google_drive_token = $params['google_drive_token'];
+		if ($google_drive_token) {
+			$task['task_args']['account_info']['google_drive']['google_drive_token'] = $google_drive_token;
+		}
 
 		$this->set_backup_task(array(
 			'task_id' => $task_id,
-			'args' => $settings[$task_id]['task_args'],
+			'args' => $task['task_args'],
 			'time' => time()
 		));
 
-		//Run backup
-		$result = $this->backup($setting['task_args'], $task_id);
+		// Run backup
+		$result = $this->backup($task['task_args'], $task_id);
 
-		//Check for error
+        if (! (is_array($result) && array_key_exists('error', $result))) {
+            if (@count($task['task_args']['account_info'])) {
+                $result = $this->remote_backup_now(array('task_id' => $task_id));
+            }
+        }
+
+		// Check for error
 		if (is_array($result) && array_key_exists('error', $result)) {
 			$this->set_backup_task(array(
 				'task_id' => $task_id,
-				'args' => $settings[$task_id]['task_args'],
+				'args'  => $task['task_args'],
 				'error' => $result
 			));
 			return $result;
@@ -347,7 +344,7 @@ class MNG_Backup {
         }
 
         //What to backup - db or full?
-        if (trim($what) == 'db') {
+        if (trim($what) == 'database') {
             $db_backup = $this->backup_db_compress($task_id, $backup_file);
             if (is_array($db_backup) && array_key_exists('error', $db_backup)) {
             	$error_message = $db_backup['error'];
@@ -407,15 +404,9 @@ class MNG_Backup {
             $temp          = array_values($temp);
             $paths['time'] = time();
 
-            if ($tasks[$task_id]['task_args']['run_now']) {
-                $paths['status']        = $temp[count($temp) - 1]['status'];
-                $temp[count($temp) - 1] = $paths;
-                unset($tasks[$task_id]['task_args']['run_now']);
-            } else {
-                $temp[count($temp)] = $paths;
-            }
+            $temp[count($temp)] = $paths;
 
-            $tasks[$tasks]['task_results'] = $temp;
+            $tasks[$task_id]['task_results'] = $temp;
             update_option('mng_backup_tasks', $tasks);
         }
 
@@ -2342,14 +2333,8 @@ class MNG_Backup {
         //Check for previous failed backups first
         $this->cleanup();
 
-        //Remove by limit
+        $num = 1;
         $backups = get_option('mng_backup_tasks');
-        if ($backups[$task_id]['task_args']['run_now']) {
-            $num = 0;
-        } else {
-            $num = 1;
-        }
-
         if ((count($backups[$task_id]['task_results']) - $num) >= $backups[$task_id]['task_args']['limit']) {
             //how many to remove ?
             $remove_num = (count($backups[$task_id]['task_results']) - $num - $backups[$task_id]['task_args']['limit']) + 1;
@@ -2389,9 +2374,9 @@ class MNG_Backup {
             if (is_array($backups[$task_id]['task_results']))
             	$backups[$task_id]['task_results'] = array_values($backups[$task_id]['task_results']);
             else
-            	$backups[$task_id]['task_results']=array();
+            	$backups[$task_id]['task_results'] = array();
 
-            update_option('mng_backup_tasks', $tasks);
+            update_option('mng_backup_tasks', $backups);
 
             return true;
         }
@@ -2617,9 +2602,6 @@ class MNG_Backup {
      */
     function update_status($task_id, $status, $completed = false) {
         $tasks = get_option('mng_backup_tasks');
-        $run_now = $tasks[$task_id]['task_args']['run_now'];
-        if ($run_now) return;
-
         $index = count($tasks[$task_id]['task_results']) - 1;
         if (!is_array($tasks[$task_id]['task_results'][$index]['status'])) {
             $tasks[$task_id]['task_results'][$index]['status'] = array();
