@@ -16,7 +16,7 @@ class MNG_Core {
 	public $comment_instance;
     public $links_instance;
     public $user_instance;
-#    public $backup_instance;
+    public $backup_instance;
 
 	function __construct() {
 		global $mng_plugin_dir, $wpmu_version, $blog_id;
@@ -112,6 +112,12 @@ class MNG_Core {
 					$return = $user_instance->$method($params['args']);
 					mng_response($return);
 				}
+			} elseif ($module === 'backups') {
+				$backup_instance = $this->get_backup_instance();
+				if ($method === 'set_backup_task' || $method === 'backup_now' || $method === 'delete_backup' || $method == 'optimize_tables' || $method === 'restore' || $method === 'cleanup') {
+					$return = $links_instance->$method($params['args']);
+					mng_response($return);
+				}
 			} elseif ($module === 'core') {
 				if ($method === 'remove_site') {
 					$args = $params['args'];
@@ -193,6 +199,15 @@ class MNG_Core {
 			$this->user_instance = new MNG_User($this);
 		}
 		return $this->user_instance;
+	}
+
+	function get_backup_instance() {
+		if (!isset($this->backup_instance)) {
+			global $mng_plugin_dir;
+			require_once("$mng_plugin_dir/class/backup.php");
+			$this->backup_instance = new MNG_Backup($this);
+		}
+		return $this->backup_instance;
 	}
 
 	/* add site with publickey */
@@ -339,6 +354,14 @@ class MNG_Core {
 		$_COOKIE['wordpress_logged_in_'.COOKIEHASH] = $logged_in_cookie;
 	}
 
+	function check_backup_tasks() {
+		global $_wp_using_ext_object_cache;
+		$_wp_using_ext_object_cache = false;
+
+		$backup_instance = $this->get_backup_instance();
+		$backup_instance->check_backup_tasks();
+	}
+
 	/* install/uninstall */
 	/**
 	 * Plugin install callback function
@@ -403,6 +426,8 @@ class MNG_Core {
 			delete_option('_wpmanagerpro_public_key');
 			delete_option('_wpmanagerpro_message_id');
 		}
+
+		wp_clear_scheduled_hook('mng_backup_tasks_hook');
 	}
 
 	/**

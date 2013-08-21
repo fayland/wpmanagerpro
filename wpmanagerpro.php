@@ -4,7 +4,7 @@ Plugin Name: wpmanagerpro
 Plugin URI: http://wpmanagerpro.com/
 Description: Manage Multiple WordPress sites from one dashboard. Visit <a href="http://wpmanagerpro.com">wpmanagerpro.com</a> to sign up.
 Author: fayland
-Version: 1.0.1
+Version: 1.0.2
 Author URI: http://wpmanagerpro.com
 */
 
@@ -16,7 +16,7 @@ if (version_compare(PHP_VERSION, '5.0.0', '<')) // min version 5 supported
 	exit("<p>wpmanagerpro plugin requires PHP 5 or higher.</p>");
 
 if(! defined('WPMANAGERPRO_VERSION'))
-	define('WPMANAGERPRO_VERSION', '1.0.1');
+	define('WPMANAGERPRO_VERSION', '1.0.2');
 
 if ( ! defined('MNG_XFRAME_COOKIE')) {
 	$siteurl = function_exists( 'get_site_option' ) ? get_site_option( 'siteurl' ) : get_option( 'siteurl' );
@@ -38,6 +38,7 @@ add_action('setup_theme', 'mng_parse_request'); // functions.php
 add_action('init', array( $mng_core, 'mng_remote_action'), 9999); // action is registered at mng_parse_request
 add_action('set_auth_cookie', array( $mng_core, 'mng_set_auth_cookie'));
 add_action('set_logged_in_cookie', array( $mng_core, 'mng_set_logged_in_cookie'));
+add_action('mng_backup_tasks_hook', array( $mng_core, 'check_backup_tasks')); // for wp_schedule_event
 
 if (isset($_GET['wpmanagerpro_auto_login']))
 	$mng_core->automatic_login(MNG_XFRAME_COOKIE);
