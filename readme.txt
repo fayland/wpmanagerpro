@@ -17,6 +17,10 @@ Visit [wpmanagerpro](http://wpmanagerpro.com/), sign up and add your site
 
 == Changelog ==
 
+= 1.0.2 =
+
+- add backups
+
 = 1.0.1 =
 
 - bug fixes
