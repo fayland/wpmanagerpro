@@ -172,16 +172,9 @@ class MNG_Backup {
     function set_backup_task($params) {
         if (empty($params)) return false;
 
-        // $params => [$task_id, $args, $error]
-
-    	// Make sure backup cron job is set
-    	if (! wp_next_scheduled('mng_backup_tasks_hook')) {
-			wp_schedule_event( time(), 'tenminutes', 'mng_backup_tasks_hook' );
-		}
-
-        $before = get_option('mng_backup_tasks');
-        if (!$before || empty($before))
-            $before = array();
+        $tasks = get_option('mng_backup_tasks');
+        if (!$tasks || empty($tasks))
+            $tasks = array();
 
         $task_id = $params['task_id'];
         $args = $params['args'];
@@ -192,7 +185,7 @@ class MNG_Backup {
         unset($args['run_now']);
 
         if (isset($args['remove'])) {
-            unset($before[$task_id]);
+            unset($tasks[$task_id]);
             $return = array(
                 'removed' => true
             );
@@ -201,44 +194,47 @@ class MNG_Backup {
                 $args['account_info'] = $params['account_info'];
             }
 
-            $before[$task_id]['task_args'] = $args;
+            $tasks[$task_id]['task_args'] = $args;
             if (strlen($args['schedule']))
-                $before[$task_id]['task_args']['next'] = $this->schedule_next($args['type'], $args['schedule']);
+                $tasks[$task_id]['task_args']['next'] = $this->schedule_next($args['type'], $args['schedule']);
 
-            $return = $before[$task_id];
+            $return = $tasks[$task_id];
         }
 
         // Update with error
         if (isset($error)) {
             if (is_array($error)) {
-                $before[$task_id]['task_results'][count($before[$task_id]['task_results']) - 1]['error'] = $error['error'];
+                $tasks[$task_id]['task_results'][count($tasks[$task_id]['task_results']) - 1]['error'] = $error['error'];
             } else {
-                $before[$task_id]['task_results'][count($before[$task_id]['task_results'])]['error'] = $error;
+                $tasks[$task_id]['task_results'][count($tasks[$task_id]['task_results'])]['error'] = $error;
             }
         }
 
-        if (isset($time) && $time) { // set next result time before backup
-            if (is_array($before[$task_id]['task_results'])) {
-                $before[$task_id]['task_results'] = array_values($before[$task_id]['task_results']);
+        if (isset($time) && $time) { // set next result time tasks backup
+            if (is_array($tasks[$task_id]['task_results'])) {
+                $tasks[$task_id]['task_results'] = array_values($tasks[$task_id]['task_results']);
             }
-            $before[$task_id]['task_results'][count($before[$task_id]['task_results'])]['time'] = $time;
+            $tasks[$task_id]['task_results'][count($tasks[$task_id]['task_results'])]['time'] = $time;
         }
 
         update_option('mng_backup_tasks', $tasks);
+
+        // Make sure backup cron job is set
+        if (! wp_next_scheduled('mng_backup_tasks_hook')) {
+            wp_schedule_event( time(), 'tenminutes', 'mng_backup_tasks_hook' );
+        }
 
         if ($run_now) {
         	$result = $this->backup($args, $task_id);
             if (is_array($result) && array_key_exists('error', $result)) {
             	$return = $result;
             } else {
-                $tasks = get_option('mng_backup_tasks');
                 $return = $tasks[$task_id];
             }
         }
+
         return $return;
     }
-
-
 
     /**
      * Runs backup task invoked from wpmanagerpro.
@@ -2698,6 +2694,13 @@ class MNG_Backup {
         }
 
         return $changed;
+    }
+
+    function remove_http($url = '') {
+        if ($url == 'http://' OR $url == 'https://') {
+            return $url;
+        }
+        return preg_replace('/^(http|https)\:\/\/(www.)?/i', '', $url);
     }
 }
 
