@@ -11,6 +11,7 @@ class MNG_Core {
 
 	public $c_user;
 	public $post_instance;
+	public $page_instance;
 	public $stats_instance;
 	public $installer_instance;
 	public $comment_instance;
@@ -71,8 +72,19 @@ class MNG_Core {
 			list($module, $method) = explode('_', $this->action_call, 2);
 			if ($module === 'posts') {
 				$post_instance = $this->get_post_instance();
-				if ($method == 'new_post' || $method == 'delete_post' || $method == 'bulk_action' || $method === 'get_posts' || $method === 'change_status' || $method == '') {
+				if ($method === 'new_post' || $method == 'delete_post' || $method == 'bulk_action' || $method === 'get_posts' || $method === 'change_status') {
 					$return = $post_instance->$method($params['args']);
+					mng_response($return);
+				}
+			} elseif ($module === 'pages') {
+				if ($method === 'new_post' || $method === 'delete_page' || $method === 'bulk_action') {
+					if ($method === 'new_post') $params['args']['post_type'] = 'page';
+					$post_instance = $this->get_post_instance();
+					$return = $post_instance->$method($params['args']);
+					mng_response($return);
+				} elseif ($method === 'get_pages') {
+					$page_instance = $this->get_page_instance();
+					$return = $page_instance->$method($params['args']);
 					mng_response($return);
 				}
 			} elseif ($module === 'stats') {
@@ -154,6 +166,15 @@ class MNG_Core {
 			$this->post_instance = new MNG_Post($this);
 		}
 		return $this->post_instance;
+	}
+
+	function get_page_instance() {
+		if (!isset($this->page_instance)) {
+			global $mng_plugin_dir;
+			require_once("$mng_plugin_dir/class/pages.php");
+			$this->page_instance = new MNG_Page($this);
+		}
+		return $this->page_instance;
 	}
 
 	function get_stats_instance() {
