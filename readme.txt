@@ -22,6 +22,7 @@ Please send us the patch through [github](https://github.com/fayland/wpmanagerpr
 = 1.0.3 =
 
 - add backups
+- add pages
 - bug fixes
 - released on Aug 2013
 

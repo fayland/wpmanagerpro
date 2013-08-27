@@ -10,12 +10,15 @@ class MNG_Post {
 	function new_post($args) {
 		if (! isset($args)) return array('error' => 'invalid arguments.');
 
+		if (! isset($args['post_type'])) $args['post_type'] = 'post';
+
 		$post_data = array(
 			'post_title' => $args['post_title'],
 			'post_content' => $args['post_content'],
 			'post_status' => 'publish', # FIXME
 			'post_author' => $this->mng_core->c_user->ID,
 			'post_category' => array(), # FIXME
+			'post_type' => $args['post_type'],
 		);
 
 		$post_id = wp_insert_post($post_data);
