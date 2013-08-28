@@ -163,7 +163,17 @@ class MNG_Stats {
     }
 
     function get_hit_counter($stats, $options = array()) {
-        $stats['hit_counter'] = $this->get_hit_count();
+        // Check if there are no hits on last key date
+        $mng_user_hits = get_option('mng_user_hit_count');
+        if (is_array($mng_user_hits)) {
+            end($mng_user_hits);
+            $last_key_date = key($mng_user_hits);
+            $current_date  = date('Y-m-d');
+            if ($last_key_date != $curent_date)
+                $this->set_hit_count(true);
+        }
+
+        $stats['hit_counter'] = get_option('mng_user_hit_count');
         return $stats;
     }
 
@@ -341,20 +351,6 @@ class MNG_Stats {
         return $stats;
     }
 
-    function get_hit_count() {
-        // Check if there are no hits on last key date
-        $mng_user_hits = get_option('mng_user_hit_count');
-        if (is_array($mng_user_hits)) {
-            end($mng_user_hits);
-            $last_key_date = key($mng_user_hits);
-            $current_date  = date('Y-m-d');
-            if ($last_key_date != $curent_date)
-                $this->set_hit_count(true);
-        }
-
-        return get_option('mng_user_hit_count');
-    }
-
     // once it's not wpmanagerpro call, we set hit_count++
     function set_hit_count($fix_count = false) {
     	$mng_core = $this->mng_core;
@@ -367,48 +363,31 @@ class MNG_Stats {
             "122.248.234.23",
             "74.86.158.107",
             "80.241.208.196",
+            "178.238.237.215",
         ); // don't let uptime robot to affect visit count
 
         if ($fix_count || (! is_admin() && ! $this->is_bot() && !isset($_GET['doing_wp_cron']) && !in_array($_SERVER['REMOTE_ADDR'], $uptime_robot))) {
             $date           = date('Y-m-d');
             $user_hit_count = (array) get_option('mng_user_hit_count');
             if (! $user_hit_count) {
-                $user_hit_count[$date] = 1;
-                update_option('mng_user_hit_count', $user_hit_count);
+                $user_hit_count[$date] = array($_SERVER['REMOTE_ADDR'] => 1);
+
             } else {
-                $dated_keys      = array_keys($user_hit_count);
-                $last_visit_date = $dated_keys[count($dated_keys) - 1];
-
-                $days = intval((strtotime($date) - strtotime($last_visit_date)) / 60 / 60 / 24);
-                if ($days > 1) {
-                    $date_to_add = date('Y-m-d', strtotime($last_visit_date));
-
-                    for ($i = 1; $i < $days; $i++) {
-                        if (count($user_hit_count) > 14) {
-                            $shifted = @array_shift($user_hit_count);
-                        }
-
-                        $next_key = strtotime('+1 day', strtotime($date_to_add));
-                        if ($next_key == $date) {
-                            break;
-                        } else {
-                            $user_hit_count[$next_key] = 0;
-                        }
+                if (! (isset($user_hit_count[$date]) && is_array($user_hit_count[$date]))) {
+                    $user_hit_count[$date] = array();
+                }
+                if (! $fix_count) {
+                    if (! isset($user_hit_count[$date][$_SERVER['REMOTE_ADDR']])) {
+                        $user_hit_count[$date][$_SERVER['REMOTE_ADDR']] = 0;
                     }
+                    $user_hit_count[$date][$_SERVER['REMOTE_ADDR']] = ((int) $user_hit_count[$date][$_SERVER['REMOTE_ADDR']]) + 1;
                 }
 
-                if (!isset($user_hit_count[$date])) {
-                    $user_hit_count[$date] = 0;
+                if (count($user_hit_count) > 3) { # less days so that the data is not so big
+                    @array_shift($user_hit_count);
                 }
-                if (!$fix_count)
-                    $user_hit_count[$date] = ((int) $user_hit_count[$date]) + 1;
-
-                if (count($user_hit_count) > 14) {
-                    $shifted = @array_shift($user_hit_count);
-                }
-
-                update_option('mng_user_hit_count', $user_hit_count);
             }
+            update_option('mng_user_hit_count', $user_hit_count);
         }
     }
 

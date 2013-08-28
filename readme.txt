@@ -19,6 +19,11 @@ Please send us the patch through [github](https://github.com/fayland/wpmanagerpr
 
 == Changelog ==
 
+= 1.0.4 =
+
+- fix stats set_hit_count with IP Address
+- released on Sep 2013
+
 = 1.0.3 =
 
 - add backups
