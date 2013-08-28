@@ -444,8 +444,6 @@ class MNG_Installer {
         $upgradable_plugins = array();
         if (! empty($current->response)) {
             foreach ($current->response as $plugin_path => $plugin_data) {
-                if ($plugin_path == 'wpmanagerpro/wpmanagerpro.php') continue;
-
                 $data = get_plugin_data(WP_PLUGIN_DIR . '/' . $plugin_path);
 				if(isset($data['Name']) && in_array($data['Name'], $filter))
 					continue;
