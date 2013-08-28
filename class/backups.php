@@ -1077,7 +1077,7 @@ class MNG_Backup {
             	$restore_options                       = array();
             	$restore_options['mng_notifications'] = get_option('mng_notifications');
             	$restore_options['mng_pageview_alerts'] = get_option('mng_pageview_alerts');
-            	$restore_options['user_hit_count'] = get_option('user_hit_count');
+            	$restore_options['mng_user_hit_count'] = get_option('mng_user_hit_count');
             }
 
             chdir(ABSPATH);
@@ -1205,7 +1205,7 @@ class MNG_Backup {
             }
 
             //Remove hit count
-            $query = "DELETE FROM " . $new_table_prefix . "options WHERE option_name = 'user_hit_count'";
+            $query = "DELETE FROM " . $new_table_prefix . "options WHERE option_name = 'mng_user_hit_count'";
            	$wpdb->query($query);
 
             //Check for .htaccess permalinks update
