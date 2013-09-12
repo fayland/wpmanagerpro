@@ -19,9 +19,10 @@ Please send us the patch through [github](https://github.com/fayland/wpmanagerpr
 
 == Changelog ==
 
-= 1.0.4 =
+= 1.0.6 =
 
 - fix stats set_hit_count with IP Address
+- fix dropbox backup
 - released on Sep 2013
 
 = 1.0.3 =
@@ -29,9 +30,6 @@ Please send us the patch through [github](https://github.com/fayland/wpmanagerpr
 - add backups
 - add pages
 - bug fixes
-- released on Aug 2013
-
-= 1.0.0 =
 - released on Aug 2013
 
 == Installation ==

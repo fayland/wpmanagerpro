@@ -363,7 +363,6 @@ class MNG_Stats {
             "122.248.234.23",
             "74.86.158.107",
             "80.241.208.196",
-            "178.238.237.215",
         ); // don't let uptime robot to affect visit count
 
         if ($fix_count || (! is_admin() && ! $this->is_bot() && !isset($_GET['doing_wp_cron']) && !in_array($_SERVER['REMOTE_ADDR'], $uptime_robot))) {
@@ -689,7 +688,8 @@ class MNG_Stats {
             "Mediapartners-Google",
             "Sogou web spider",
             "WebAlta Crawler",
-            "aolserver"
+            "aolserver",
+            "wpmanagerpro.com", // uptime bot
         );
 
         foreach ($bot_list as $bot)
