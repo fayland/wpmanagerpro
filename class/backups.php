@@ -1720,22 +1720,21 @@ class MNG_Backup {
      * @return 	bool|array		true is successful, array with error message if not
      */
     function dropbox_backup($args) {
-        extract($args);
-
         global $mng_plugin_dir;
-        require_once $mng_plugin_dir . '/lib/dropbox.php';
+        require_once $mng_plugin_dir . '/vendor/Dropbox/autoload.php';
 
-        $dropbox = new Dropbox($consumer_key, $consumer_secret);
-        $dropbox->setOAuthTokens($oauth_token, $oauth_token_secret);
+        $dbxClient = new Dropbox\Client($args['token'], "wpmanagerpro/1.0");
 
-        if ($dropbox_site_folder == true)
-        	$dropbox_destination .= '/' . $this->site_name . '/' . basename($backup_file);
+        $backup_file = $args['backup_file'];
+        if ($args['dropbox_site_folder'])
+        	$args['dropbox_destination'] .= '/' . $this->site_name . '/' . basename($backup_file);
         else
-        	$dropbox_destination .= '/' . basename($backup_file);
+        	$args['dropbox_destination'] .= '/' . basename($backup_file);
 
         try {
-        	$dropbox->upload($backup_file, $dropbox_destination, true);
+        	$dbxClient->uploadFile('/backups' . $args['dropbox_destination'], Dropbox\WriteMode::add(), fopen($backup_file, "rb"));
         } catch (Exception $e) {
+            error_log($e->getMessage());
         	return array(
         		'error' => $e->getMessage(),
         		'partial' => 1
@@ -1759,19 +1758,19 @@ class MNG_Backup {
      * @return 	void
      */
     function remove_dropbox_backup($args) {
-    	extract($args);
+        if (! $args['backup_file']) return;
 
         global $mng_plugin_dir;
-        require_once $mng_plugin_dir . '/lib/dropbox.php';
+        require_once $mng_plugin_dir . '/vendor/Dropbox/autoload.php';
 
-        $dropbox = new Dropbox($consumer_key, $consumer_secret);
-        $dropbox->setOAuthTokens($oauth_token, $oauth_token_secret);
+        $dbxClient = new Dropbox\Client($args['token'], "wpmanagerpro/1.0");
 
-        if ($dropbox_site_folder == true)
-        	$dropbox_destination .= '/' . $this->site_name;
+        $backup_file = $args['backup_file'];
+        if ($args['dropbox_site_folder'])
+        	$args['dropbox_destination'] .= '/' . $this->site_name;
 
     	try {
-    		$dropbox->fileopsDelete($dropbox_destination . '/' . $backup_file);
+    		$dbxClient->delete('/backups' . $args['dropbox_destination'] . '/' . $backup_file);
     	} catch (Exception $e) {
     		/*return array(
     			'error' => $e->getMessage(),
@@ -1796,26 +1795,24 @@ class MNG_Backup {
 	 * @return 	bool|array		absolute path to downloaded file is successful, array with error message if not
 	 */
 	function get_dropbox_backup($args) {
-  		extract($args);
+        if (! $args['backup_file']) return;
 
   		global $mng_plugin_dir;
-  		require_once $mng_plugin_dir . '/lib/dropbox.php';
+        require_once $mng_plugin_dir . '/vendor/Dropbox/autoload.php';
 
-  		$dropbox = new Dropbox($consumer_key, $consumer_secret);
-        $dropbox->setOAuthTokens($oauth_token, $oauth_token_secret);
+        $dbxClient = new Dropbox\Client($args['token'], "wpmanagerpro/1.0");
 
-        if ($dropbox_site_folder == true)
-        	$dropbox_destination .= '/' . $this->site_name;
+        $backup_file = $args['backup_file'];
+        if ($args['dropbox_site_folder'])
+        	$args['dropbox_destination'] .= '/' . $this->site_name;
 
   		$temp = ABSPATH . 'mng_temp_backup.zip';
 
   		try {
-  			$file = $dropbox->download($dropbox_destination.'/'.$backup_file);
-  			$handle = @fopen($temp, 'w');
-			$result = fwrite($handle,$file);
-			fclose($handle);
+  			$metadata = $dbxClient->getFile('/backups' . $args['dropbox_destination'].'/'.$backup_file, fopen($temp, "wb"));
+#            error_log(print_r($metadata, true));
 
-			if($result)
+			if($metadata)
 				return $temp;
 			else
 				return false;
