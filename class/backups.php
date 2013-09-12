@@ -79,7 +79,7 @@ class MNG_Backup {
                     //Check orphan task
                     $check_data = array(
                         'task_id' => $task_id,
-                        'site_key' => $setting['task_args']['site_id'],
+                        'site_id' => $setting['task_args']['site_id'],
                     );
 
                     if (isset($setting['task_args']['account_info']['google_drive']['google_drive_token'])) {
@@ -133,7 +133,6 @@ class MNG_Backup {
      *
      * @param   array   $args           arguments passed to function
      * [task_id] -> id of backup task
-     * [$site_key] -> hash key of backup task
      * [google_drive_refresh_token] ->  should be Google Drive token be refreshed, true if it is remote destination of task
      * @param   string  $url            url where validate task
      * @return  string|array|boolean
@@ -404,7 +403,8 @@ class MNG_Backup {
             $temp          = array_values($temp);
             $paths['time'] = time();
 
-            $temp[count($temp)] = $paths;
+            $paths['status']        = $temp[count($temp) - 1]['status'];
+            $temp[count($temp) - 1] = $paths;
 
             $tasks[$task_id]['task_results'] = $temp;
             update_option('mng_backup_tasks', $tasks);
@@ -1711,32 +1711,28 @@ class MNG_Backup {
      * Uploads backup file from server to Dropbox.
      *
      * @param 	array 	$args	arguments passed to the function
-     * [consumer_key] -> consumer key of wpmanagerpro Dropbox application
-     * [consumer_secret] -> consumer secret of wpmanagerpro Dropbox application
-     * [oauth_token] -> oauth token of user on wpmanagerpro Dropbox application
-     * [oauth_token_secret] -> oauth token secret of user on wpmanagerpro Dropbox application
+     * [token] -> token of user on wpmanagerpro Dropbox application
      * [dropbox_destination] -> folder on user's Dropbox account which backup file should be upload to
      * [dropbox_site_folder] -> subfolder with site name in dropbox_destination which backup file should be upload to
      * [backup_file] -> absolute path of backup file on local server
      * @return 	bool|array		true is successful, array with error message if not
      */
     function dropbox_backup($args) {
-        extract($args);
-
         global $mng_plugin_dir;
-        require_once $mng_plugin_dir . '/lib/dropbox.php';
+        require_once $mng_plugin_dir . '/vendor/Dropbox/autoload.php';
 
-        $dropbox = new Dropbox($consumer_key, $consumer_secret);
-        $dropbox->setOAuthTokens($oauth_token, $oauth_token_secret);
+        $dbxClient = new Dropbox\Client($args['token'], "wpmanagerpro/1.0");
 
-        if ($dropbox_site_folder == true)
-        	$dropbox_destination .= '/' . $this->site_name . '/' . basename($backup_file);
+        $backup_file = $args['backup_file'];
+        if ($args['dropbox_site_folder'])
+        	$args['dropbox_destination'] .= '/' . $this->site_name . '/' . basename($backup_file);
         else
-        	$dropbox_destination .= '/' . basename($backup_file);
+        	$args['dropbox_destination'] .= '/' . basename($backup_file);
 
         try {
-        	$dropbox->upload($backup_file, $dropbox_destination, true);
+        	$dbxClient->uploadFile('/backups' . $args['dropbox_destination'], Dropbox\WriteMode::add(), fopen($backup_file, "rb"));
         } catch (Exception $e) {
+            error_log($e->getMessage());
         	return array(
         		'error' => $e->getMessage(),
         		'partial' => 1
@@ -1750,29 +1746,26 @@ class MNG_Backup {
      * Deletes backup file from Dropbox to root folder on local server.
      *
      * @param 	array 	$args	arguments passed to the function
-     * [consumer_key] -> consumer key of wpmanagerpro Dropbox application
-     * [consumer_secret] -> consumer secret of wpmanagerpro Dropbox application
-     * [oauth_token] -> oauth token of user on wpmanagerpro Dropbox application
-     * [oauth_token_secret] -> oauth token secret of user on wpmanagerpro Dropbox application
+     * [token] -> token of user on wpmanagerpro Dropbox application
      * [dropbox_destination] -> folder on user's Dropbox account which backup file should be downloaded from
      * [dropbox_site_folder] -> subfolder with site name in dropbox_destination which backup file should be downloaded from
      * [backup_file] -> absolute path of backup file on local server
      * @return 	void
      */
     function remove_dropbox_backup($args) {
-    	extract($args);
+        if (! $args['backup_file']) return;
 
         global $mng_plugin_dir;
-        require_once $mng_plugin_dir . '/lib/dropbox.php';
+        require_once $mng_plugin_dir . '/vendor/Dropbox/autoload.php';
 
-        $dropbox = new Dropbox($consumer_key, $consumer_secret);
-        $dropbox->setOAuthTokens($oauth_token, $oauth_token_secret);
+        $dbxClient = new Dropbox\Client($args['token'], "wpmanagerpro/1.0");
 
-        if ($dropbox_site_folder == true)
-        	$dropbox_destination .= '/' . $this->site_name;
+        $backup_file = $args['backup_file'];
+        if ($args['dropbox_site_folder'])
+        	$args['dropbox_destination'] .= '/' . $this->site_name;
 
     	try {
-    		$dropbox->fileopsDelete($dropbox_destination . '/' . $backup_file);
+    		$dbxClient->delete('/backups' . $args['dropbox_destination'] . '/' . $backup_file);
     	} catch (Exception $e) {
     		/*return array(
     			'error' => $e->getMessage(),
@@ -1787,36 +1780,31 @@ class MNG_Backup {
 	 * Downloads backup file from Dropbox to root folder on local server.
 	 *
 	 * @param 	array 	$args	arguments passed to the function
-	 * [consumer_key] -> consumer key of wpmanagerpro Dropbox application
-	 * [consumer_secret] -> consumer secret of wpmanagerpro Dropbox application
-	 * [oauth_token] -> oauth token of user on wpmanagerpro Dropbox application
-	 * [oauth_token_secret] -> oauth token secret of user on wpmanagerpro Dropbox application
+	 * [token] -> token of user on wpmanagerpro Dropbox application
 	 * [dropbox_destination] -> folder on user's Dropbox account which backup file should be deleted from
 	 * [dropbox_site_folder] -> subfolder with site name in dropbox_destination which backup file should be deleted from
 	 * [backup_file] -> absolute path of backup file on local server
 	 * @return 	bool|array		absolute path to downloaded file is successful, array with error message if not
 	 */
 	function get_dropbox_backup($args) {
-  		extract($args);
+        if (! $args['backup_file']) return;
 
   		global $mng_plugin_dir;
-  		require_once $mng_plugin_dir . '/lib/dropbox.php';
+        require_once $mng_plugin_dir . '/vendor/Dropbox/autoload.php';
 
-  		$dropbox = new Dropbox($consumer_key, $consumer_secret);
-        $dropbox->setOAuthTokens($oauth_token, $oauth_token_secret);
+        $dbxClient = new Dropbox\Client($args['token'], "wpmanagerpro/1.0");
 
-        if ($dropbox_site_folder == true)
-        	$dropbox_destination .= '/' . $this->site_name;
+        $backup_file = $args['backup_file'];
+        if ($args['dropbox_site_folder'])
+        	$args['dropbox_destination'] .= '/' . $this->site_name;
 
   		$temp = ABSPATH . 'mng_temp_backup.zip';
 
   		try {
-  			$file = $dropbox->download($dropbox_destination.'/'.$backup_file);
-  			$handle = @fopen($temp, 'w');
-			$result = fwrite($handle,$file);
-			fclose($handle);
+  			$metadata = $dbxClient->getFile('/backups' . $args['dropbox_destination'].'/'.$backup_file, fopen($temp, "wb"));
+#            error_log(print_r($metadata, true));
 
-			if($result)
+			if($metadata)
 				return $temp;
 			else
 				return false;
@@ -2606,11 +2594,10 @@ class MNG_Backup {
         if (!is_array($tasks[$task_id]['task_results'][$index]['status'])) {
             $tasks[$task_id]['task_results'][$index]['status'] = array();
         }
-        if (!$completed) {
-            $tasks[$task_id]['task_results'][$index]['status'][] = (int) $status * (-1);
+        if (! $completed) {
+            $tasks[$task_id]['task_results'][$index]['status'][$status] = -1;
         } else {
-            $status_index                                                       = count($tasks[$task_id]['task_results'][$index]['status']) - 1;
-            $tasks[$task_id]['task_results'][$index]['status'][$status_index] = abs($tasks[$task_id]['task_results'][$index]['status'][$status_index]);
+            $tasks[$task_id]['task_results'][$index]['status'][$status] = 1;
         }
 
         update_option('mng_backup_tasks', $tasks);
