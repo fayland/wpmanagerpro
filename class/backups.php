@@ -403,7 +403,8 @@ class MNG_Backup {
             $temp          = array_values($temp);
             $paths['time'] = time();
 
-            $temp[count($temp)] = $paths;
+            $paths['status']        = $temp[count($temp) - 1]['status'];
+            $temp[count($temp) - 1] = $paths;
 
             $tasks[$task_id]['task_results'] = $temp;
             update_option('mng_backup_tasks', $tasks);
@@ -2593,11 +2594,10 @@ class MNG_Backup {
         if (!is_array($tasks[$task_id]['task_results'][$index]['status'])) {
             $tasks[$task_id]['task_results'][$index]['status'] = array();
         }
-        if (!$completed) {
-            $tasks[$task_id]['task_results'][$index]['status'][] = (int) $status * (-1);
+        if (! $completed) {
+            $tasks[$task_id]['task_results'][$index]['status'][$status] = -1;
         } else {
-            $status_index                                                       = count($tasks[$task_id]['task_results'][$index]['status']) - 1;
-            $tasks[$task_id]['task_results'][$index]['status'][$status_index] = abs($tasks[$task_id]['task_results'][$index]['status'][$status_index]);
+            $tasks[$task_id]['task_results'][$index]['status'][$status] = 1;
         }
 
         update_option('mng_backup_tasks', $tasks);
