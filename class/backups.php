@@ -1710,10 +1710,7 @@ class MNG_Backup {
      * Uploads backup file from server to Dropbox.
      *
      * @param 	array 	$args	arguments passed to the function
-     * [consumer_key] -> consumer key of wpmanagerpro Dropbox application
-     * [consumer_secret] -> consumer secret of wpmanagerpro Dropbox application
-     * [oauth_token] -> oauth token of user on wpmanagerpro Dropbox application
-     * [oauth_token_secret] -> oauth token secret of user on wpmanagerpro Dropbox application
+     * [token] -> token of user on wpmanagerpro Dropbox application
      * [dropbox_destination] -> folder on user's Dropbox account which backup file should be upload to
      * [dropbox_site_folder] -> subfolder with site name in dropbox_destination which backup file should be upload to
      * [backup_file] -> absolute path of backup file on local server
@@ -1748,10 +1745,7 @@ class MNG_Backup {
      * Deletes backup file from Dropbox to root folder on local server.
      *
      * @param 	array 	$args	arguments passed to the function
-     * [consumer_key] -> consumer key of wpmanagerpro Dropbox application
-     * [consumer_secret] -> consumer secret of wpmanagerpro Dropbox application
-     * [oauth_token] -> oauth token of user on wpmanagerpro Dropbox application
-     * [oauth_token_secret] -> oauth token secret of user on wpmanagerpro Dropbox application
+     * [token] -> token of user on wpmanagerpro Dropbox application
      * [dropbox_destination] -> folder on user's Dropbox account which backup file should be downloaded from
      * [dropbox_site_folder] -> subfolder with site name in dropbox_destination which backup file should be downloaded from
      * [backup_file] -> absolute path of backup file on local server
@@ -1785,10 +1779,7 @@ class MNG_Backup {
 	 * Downloads backup file from Dropbox to root folder on local server.
 	 *
 	 * @param 	array 	$args	arguments passed to the function
-	 * [consumer_key] -> consumer key of wpmanagerpro Dropbox application
-	 * [consumer_secret] -> consumer secret of wpmanagerpro Dropbox application
-	 * [oauth_token] -> oauth token of user on wpmanagerpro Dropbox application
-	 * [oauth_token_secret] -> oauth token secret of user on wpmanagerpro Dropbox application
+	 * [token] -> token of user on wpmanagerpro Dropbox application
 	 * [dropbox_destination] -> folder on user's Dropbox account which backup file should be deleted from
 	 * [dropbox_site_folder] -> subfolder with site name in dropbox_destination which backup file should be deleted from
 	 * [backup_file] -> absolute path of backup file on local server
