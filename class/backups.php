@@ -79,7 +79,7 @@ class MNG_Backup {
                     //Check orphan task
                     $check_data = array(
                         'task_id' => $task_id,
-                        'site_key' => $setting['task_args']['site_id'],
+                        'site_id' => $setting['task_args']['site_id'],
                     );
 
                     if (isset($setting['task_args']['account_info']['google_drive']['google_drive_token'])) {
@@ -133,7 +133,6 @@ class MNG_Backup {
      *
      * @param   array   $args           arguments passed to function
      * [task_id] -> id of backup task
-     * [$site_key] -> hash key of backup task
      * [google_drive_refresh_token] ->  should be Google Drive token be refreshed, true if it is remote destination of task
      * @param   string  $url            url where validate task
      * @return  string|array|boolean
