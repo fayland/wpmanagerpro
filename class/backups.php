@@ -1830,8 +1830,8 @@ class MNG_Backup {
     	extract($args);
 
     	global $mng_plugin_dir;
-    	require_once("$mng_plugin_dir/lib/google-api-client/Google_Client.php");
-    	require_once("$mng_plugin_dir/lib/google-api-client/contrib/Google_DriveService.php");
+    	require_once("$mng_plugin_dir/vendor/google-api-client/Google_Client.php");
+    	require_once("$mng_plugin_dir/vendor/google-api-client/contrib/Google_DriveService.php");
 
     	$gdrive_client = new Google_Client();
 	    $gdrive_client->setUseObjects(true);
@@ -1963,8 +1963,8 @@ class MNG_Backup {
     	extract($args);
 
     	global $mng_plugin_dir;
-    	require_once("$mng_plugin_dir/lib/google-api-client/Google_Client.php");
-    	require_once("$mng_plugin_dir/lib/google-api-client/contrib/Google_DriveService.php");
+    	require_once("$mng_plugin_dir/vendor/google-api-client/Google_Client.php");
+    	require_once("$mng_plugin_dir/vendor/google-api-client/contrib/Google_DriveService.php");
 
     	try {
 	    	$gdrive_client = new Google_Client();
@@ -2067,8 +2067,8 @@ class MNG_Backup {
     	extract($args);
 
     	global $mng_plugin_dir;
-    	require_once("$mng_plugin_dir/lib/google-api-client/Google_Client.php");
-    	require_once("$mng_plugin_dir/lib/google-api-client/contrib/Google_DriveService.php");
+    	require_once("$mng_plugin_dir/vendor/google-api-client/Google_Client.php");
+    	require_once("$mng_plugin_dir/vendor/google-api-client/contrib/Google_DriveService.php");
 
     	try {
 	    	$gdrive_client = new Google_Client();
