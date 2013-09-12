@@ -82,10 +82,6 @@ class MNG_Backup {
                         'site_id' => $setting['task_args']['site_id'],
                     );
 
-                    if (isset($setting['task_args']['account_info']['google_drive']['google_drive_token'])) {
-                        $check_data['google_drive_refresh_token'] = true;
-                    }
-
                     $check = $this->validate_task($check_data, $setting['task_args']['url']);
                     if($check == 'paused' || $check == 'deleted'){
                         continue;
@@ -133,7 +129,6 @@ class MNG_Backup {
      *
      * @param   array   $args           arguments passed to function
      * [task_id] -> id of backup task
-     * [google_drive_refresh_token] ->  should be Google Drive token be refreshed, true if it is remote destination of task
      * @param   string  $url            url where validate task
      * @return  string|array|boolean
      */
@@ -1962,6 +1957,8 @@ class MNG_Backup {
     function remove_google_drive_backup($args) {
     	extract($args);
 
+        error_log(print_r($args, true));
+
     	global $mng_plugin_dir;
     	require_once("$mng_plugin_dir/vendor/google-api-client/Google_Client.php");
     	require_once("$mng_plugin_dir/vendor/google-api-client/contrib/Google_DriveService.php");
@@ -1998,6 +1995,7 @@ class MNG_Backup {
     	if (isset($files[0])) {
     		$wpmanagerpro_folder = $files[0];
     	} else {
+            return;
     		/*return array(
     			'error' => "This file does not exist.",
     		);*/
