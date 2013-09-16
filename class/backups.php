@@ -2589,7 +2589,11 @@ class MNG_Backup {
      */
     function update_status($task_id, $status, $completed = false) {
         $tasks = get_option('mng_backup_tasks');
+        if (! isset($tasks[$task_id]['task_results'])) {
+            $tasks[$task_id]['task_results'] = array();
+        }
         $index = count($tasks[$task_id]['task_results']) - 1;
+        if ($index < 0) $index = 0;
         if (!is_array($tasks[$task_id]['task_results'][$index]['status'])) {
             $tasks[$task_id]['task_results'][$index]['status'] = array();
         }
