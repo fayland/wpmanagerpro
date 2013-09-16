@@ -471,6 +471,7 @@ class MNG_Backup {
         @rmdir(MNG_DB_DIR);
 
         $remove = array(
+            trim(basename(WP_CONTENT_DIR)) . "/managewp/backups",
         	trim(basename(WP_CONTENT_DIR)) . "/wpmanagerpro/backups",
         	trim(basename(WP_CONTENT_DIR)) . "/" . md5('wpmanagerpro') . "/mng_backups"
         );
