@@ -35,6 +35,7 @@ class MNG_Backup {
     var $site_name;
     var $statuses;
     var $tasks;
+    var $result_id;
 
     /**
      * Initializes site_name, statuses, and tasks attributes.
@@ -59,6 +60,8 @@ class MNG_Backup {
         	'google_drive' => 8,
             'finished' => 100
         );
+
+        $this->result_id = time();
     }
 
     /**
@@ -194,17 +197,14 @@ class MNG_Backup {
         // Update with error
         if (isset($error)) {
             if (is_array($error)) {
-                $tasks[$task_id]['task_results'][count($tasks[$task_id]['task_results']) - 1]['error'] = $error['error'];
+                $tasks[$task_id]['task_results'][$this->result_id]['error'] = $error['error'];
             } else {
-                $tasks[$task_id]['task_results'][count($tasks[$task_id]['task_results'])]['error'] = $error;
+                $tasks[$task_id]['task_results'][$this->result_id]['error'] = $error;
             }
         }
 
         if (isset($time) && $time) { // set next result time tasks backup
-            if (is_array($tasks[$task_id]['task_results'])) {
-                $tasks[$task_id]['task_results'] = array_values($tasks[$task_id]['task_results']);
-            }
-            $tasks[$task_id]['task_results'][count($tasks[$task_id]['task_results'])]['time'] = $time;
+            $tasks[$task_id]['task_results'][$this->result_id]['time'] = $time;
         }
 
         update_option('mng_backup_tasks', $tasks);
@@ -395,11 +395,9 @@ class MNG_Backup {
             }
 
             $temp          = $tasks[$task_id]['task_results'];
-            $temp          = array_values($temp);
-            $paths['time'] = time();
-
-            $paths['status']        = $temp[count($temp) - 1]['status'];
-            $temp[count($temp) - 1] = $paths;
+            $paths['time']   = time();
+            $paths['status'] = $temp[$this->result_id]['status'];
+            $temp[$this->result_id] = $paths;
 
             $tasks[$task_id]['task_results'] = $temp;
             update_option('mng_backup_tasks', $tasks);
@@ -2287,7 +2285,7 @@ class MNG_Backup {
                     }
                 }
                 if (is_array($info['task_results']))
-                	$stats[$task_id] = array_values($info['task_results']);
+                    $stats[$task_id] = $info['task_results'];
             }
         }
         return $stats;
@@ -2323,9 +2321,10 @@ class MNG_Backup {
         $num = 1;
         $backups = get_option('mng_backup_tasks');
         if ((count($backups[$task_id]['task_results']) - $num) >= $backups[$task_id]['task_args']['limit']) {
-            //how many to remove ?
+            ksort($backups[$task_id]['task_results']);
+            // how many to remove ?
             $remove_num = (count($backups[$task_id]['task_results']) - $num - $backups[$task_id]['task_args']['limit']) + 1;
-            for ($i = 0; $i < $remove_num; $i++) {
+            foreach ($backups[$task_id]['task_results'] as $i => $v) {
                 //Remove from the server
                 if (isset($backups[$task_id]['task_results'][$i]['server'])) {
                     @unlink($backups[$task_id]['task_results'][$i]['server']['file_path']);
@@ -2356,11 +2355,12 @@ class MNG_Backup {
 
                 //Remove database backup info
                 unset($backups[$task_id]['task_results'][$i]);
+
+                $remove_num--;
+                if ($remove_num < 1) break;
             } //end foreach
 
-            if (is_array($backups[$task_id]['task_results']))
-            	$backups[$task_id]['task_results'] = array_values($backups[$task_id]['task_results']);
-            else
+            if (! is_array($backups[$task_id]['task_results']))
             	$backups[$task_id]['task_results'] = array();
 
             update_option('mng_backup_tasks', $backups);
@@ -2558,7 +2558,7 @@ class MNG_Backup {
             if ($return == true && ! $keep_backup_on_server) {
                 $tasks = get_option('mng_backup_tasks');
                 @unlink($backup_file);
-                unset($tasks[$task_id]['task_results'][count($tasks[$task_id]['task_results']) - 1]['server']);
+                unset($tasks[$task_id]['task_results'][$this->result_id]['server']);
                 update_option('mng_backup_tasks', $tasks);
             }
         } else {
@@ -2589,18 +2589,13 @@ class MNG_Backup {
      */
     function update_status($task_id, $status, $completed = false) {
         $tasks = get_option('mng_backup_tasks');
-        if (! isset($tasks[$task_id]['task_results'])) {
-            $tasks[$task_id]['task_results'] = array();
-        }
-        $index = count($tasks[$task_id]['task_results']) - 1;
-        if ($index < 0) $index = 0;
-        if (!is_array($tasks[$task_id]['task_results'][$index]['status'])) {
-            $tasks[$task_id]['task_results'][$index]['status'] = array();
+        if (!is_array($tasks[$task_id]['task_results'][$this->result_id]['status'])) {
+            $tasks[$task_id]['task_results'][$this->result_id]['status'] = array();
         }
         if (! $completed) {
-            $tasks[$task_id]['task_results'][$index]['status'][$status] = -1;
+            $tasks[$task_id]['task_results'][$this->result_id]['status'][$status] = -1;
         } else {
-            $tasks[$task_id]['task_results'][$index]['status'][$status] = 1;
+            $tasks[$task_id]['task_results'][$this->result_id]['status'][$status] = 1;
         }
 
         update_option('mng_backup_tasks', $tasks);
