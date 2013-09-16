@@ -127,7 +127,7 @@ class MNG_Stats {
 
     function mng_parse_action_params($params = null){
 		$return = array();
-		$_item_filter = array( 'core_update', 'hit_counter', 'comments', 'posts', 'drafts', 'scheduled', 'updates', 'errors', 'cleanup' );
+		$_item_filter = array( 'core_update', 'hit_counter', 'comments', 'backups', 'posts', 'drafts', 'scheduled', 'updates', 'errors', 'cleanup' );
 		if( isset($params['item_filter']) && !empty($params['item_filter'])){
 			foreach($params['item_filter'] as $_items){
 				if(!empty($_items)){
@@ -222,6 +222,14 @@ class MNG_Stats {
                 $stats['comments']['approved'] = $rtn_comments;
             }
         }
+        return $stats;
+    }
+
+    function get_backups($stats, $options = array()) {
+        $mng_core = $this->mng_core;
+        $stats['mng_backups']      = $mng_core->get_backup_instance()->get_backup_stats();
+        $stats['mng_next_backups'] = $mng_core->get_backup_instance()->get_next_schedules();
+
         return $stats;
     }
 
