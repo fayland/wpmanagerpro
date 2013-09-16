@@ -227,8 +227,8 @@ class MNG_Stats {
 
     function get_backups($stats, $options = array()) {
         $mng_core = $this->mng_core;
-        $stats['mng_backups']      = $mng_core->get_backup_instance()->get_backup_stats();
-        $stats['mng_next_backups'] = $mng_core->get_backup_instance()->get_next_schedules();
+        $stats['backups']      = $mng_core->get_backup_instance()->get_backup_stats();
+        $stats['next_backups'] = $mng_core->get_backup_instance()->get_next_schedules();
 
         return $stats;
     }
