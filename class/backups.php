@@ -1045,7 +1045,7 @@ class MNG_Backup {
         if ($backup_file && file_exists($backup_file)) {
             if ($overwrite) {
                 //Keep old db credentials before overwrite
-                if (!copy(ABSPATH . 'wp-config.php', ABSPATH . 'mwp-temp-wp-config.php')) {
+                if (!copy(ABSPATH . 'wp-config.php', ABSPATH . 'mng-temp-wp-config.php')) {
                     @unlink($backup_file);
                     return array(
                         'error' => 'Error creating wp-config. Please check your write permissions.'
@@ -1127,7 +1127,7 @@ class MNG_Backup {
             //Retrieve old wp_config
             @unlink(ABSPATH . 'wp-config.php');
             //Replace table prefix
-            $lines = file(ABSPATH . 'mwp-temp-wp-config.php');
+            $lines = file(ABSPATH . 'mng-temp-wp-config.php');
 
             foreach ($lines as $line) {
                 if (strstr($line, '$table_prefix')) {
@@ -1136,7 +1136,7 @@ class MNG_Backup {
                 file_put_contents(ABSPATH . 'wp-config.php', $line, FILE_APPEND);
             }
 
-            @unlink(ABSPATH . 'mwp-temp-wp-config.php');
+            @unlink(ABSPATH . 'mng-temp-wp-config.php');
 
             //Replace options
             $query = "SELECT option_value FROM " . $new_table_prefix . "options WHERE option_name = 'home'";
